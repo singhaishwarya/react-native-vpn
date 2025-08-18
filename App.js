@@ -32,8 +32,6 @@ export default function App() {
   { name: 'China', file: 'HongKong1.ovpn', flag: 'https://flagcdn.com/w320/cn.png', ip: '119.28.45.12' },
   { name: 'South Africa', file: 'Africa1.ovpn', flag: 'https://flagcdn.com/w320/za.png', ip: '119.28.45.13' },
   { name: 'Poland', file: 'Poland1.ovpn', flag: 'https://flagcdn.com/w320/pl.png', ip: '51.83.142.67' },
-  
-  // Added for better global spread:
   { name: 'United States', file: 'USA1.ovpn', flag: 'https://flagcdn.com/w320/us.png', ip: '34.201.45.76' },
   { name: 'Canada', file: 'Canada1.ovpn', flag: 'https://flagcdn.com/w320/ca.png', ip: '142.250.72.14' },
   { name: 'Brazil', file: 'Brazil1.ovpn', flag: 'https://flagcdn.com/w320/br.png', ip: '177.12.45.32' },
@@ -80,42 +78,45 @@ export default function App() {
     const ss = (s % 60).toString().padStart(2, '0');
     return `00:${m}:${ss}`;
   };
+const connectVpn = async () => {
+  try {
 
-  const connectVpn = async () => {
-    try {
-      const configPath = `${RNFS.ExternalDirectoryPath}/${selectedVpn}`;
-      const configExists = await RNFS.exists(configPath);
-      if (!configExists) {
-        await RNFS.copyFileAssets(selectedVpn, configPath);
-      }
-      const ovpnConfig = await RNFS.readFile(configPath, 'utf8');
+    const configPath = `${RNFS.ExternalDirectoryPath}/${selectedVpn}`;
+    const configExists = await RNFS.exists(configPath);
 
-      await RNSimpleOpenvpn.connect({
-        ovpnString: ovpnConfig,
-        notificationTitle: 'Vulture VPN',
-        compatMode: RNSimpleOpenvpn.CompatMode.OVPN_TWO_THREE_PEER,
-        providerBundleIdentifier: 'com.vpn3001',
-        localizedDescription: 'Vulture VPN',
-      });
-
-      setConnected(true);
-      setTime(0);
-    } catch (error) {
-      Alert.alert('Connection Failed', error.message);
-      console.error(error);
+    if (!configExists) {
+      await RNFS.copyFileAssets(selectedVpn, configPath);
     }
-  };
 
-  const disconnectVpn = async () => {
-    try {
-      await RNSimpleOpenvpn.disconnect();
-      setConnected(false);
-    } catch (error) {
-      Alert.alert('Disconnection Failed', error.message);
-      console.error(error);
-    }
-  };
+    const ovpnConfig = await RNFS.readFile(configPath, 'utf8');
 
+    await RNSimpleOpenvpn.connect({
+      ovpnString: ovpnConfig,
+      notificationTitle: 'Vulture VPN',
+      compatMode: RNSimpleOpenvpn.CompatMode.OVPN_TWO_THREE_PEER,
+      providerBundleIdentifier: 'com.vpn3001',
+      localizedDescription: 'Vulture VPN',
+    });
+
+    setConnected(true);
+    setTime(0);
+  } catch (error) {
+    Alert.alert('Connection Failed', error.message);
+    console.error(error);
+  }
+};
+
+const disconnectVpn = async () => {
+  try {
+    await RNSimpleOpenvpn.disconnect();
+    setConnected(false); 
+  } catch (error) {
+    Alert.alert('Disconnection Failed', error.message);
+    console.error(error);
+  }
+};
+
+const currentVpn = vpnList.find((v) => v.file === selectedVpn);
   const toggleVpn = () => {
     if (connected) {
       disconnectVpn();
@@ -124,7 +125,6 @@ export default function App() {
     }
   };
 
-  const currentVpn = vpnList.find((v) => v.file === selectedVpn);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -232,7 +232,7 @@ export default function App() {
         </View>
       )}
 
-      {/* Location Info */}
+        {/* Location Info */}
       {connected && (
         <>
           <TouchableOpacity
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   header: { width: Dimensions.get("window").width + 10, height: 500, borderBottomLeftRadius: 15, borderBottomRightRadius: 90, alignItems: "center", justifyContent: "flex-start", paddingTop: 70, overflow: "hidden", position: "relative" },
   headerBg: { borderBottomLeftRadius: 15, borderBottomRightRadius: 90, resizeMode: "stretch" },
   topNavigation: { flexDirection: "row", justifyContent: "space-between", width: "100%", paddingHorizontal: 20, paddingTop: 10, position: "absolute", top: 50, zIndex: 10 },
-  topButton: { width: 36, height: 10, borderRadius: 8, backgroundColor: "rgba(255, 255, 255, 0.2)", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255, 255, 255, 0.3)" },
+  topButton: { width: 36, height: 30, borderRadius: 8, backgroundColor: "rgba(255, 255, 255, 0.2)", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255, 255, 255, 0.3)" },
   titleContainer: { alignItems: "center", marginTop: 30 },
   title: { color: "#fff", fontSize: 18, fontWeight: "600", letterSpacing: 1 },
   statusText: { color: "#fff", fontSize: 14, fontWeight: "400", marginTop: 15, opacity: 0.9 },
